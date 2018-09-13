@@ -89,6 +89,10 @@ private:
 	void OpExxx();
 	void OpFxxx();
 
+	bool ImguiGUI;
+	bool Paused;
+	bool Step;
+
 	sf::RenderWindow *window;
 
 	sf::Sprite frame;

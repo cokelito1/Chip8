@@ -80,7 +80,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Users\coke\Desktop\SFML-2.5.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-audio.lib;sfml-network.lib;sfml-window.lib;sfml-graphics.lib;sfml-main.lib;sfml-system.lib;sfgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;sfml-audio.lib;sfml-network.lib;sfml-window.lib;sfml-graphics.lib;sfml-main.lib;sfml-system.lib;sfgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -123,9 +123,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Desktop\SFML-2.5.0\include\imconfig-SFML.h" />
+    <ClInclude Include="..\..\..\..\Desktop\SFML-2.5.0\include\imconfig.h" />
     <ClInclude Include="cpu.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\Desktop\SFML-2.5.0\imgui-SFML.cpp" />
+    <ClCompile Include="..\..\..\..\Desktop\SFML-2.5.0\imgui.cpp" />
+    <ClCompile Include="..\..\..\..\Desktop\SFML-2.5.0\imgui_draw.cpp" />
+    <ClCompile Include="..\..\..\..\Desktop\SFML-2.5.0\imgui_widgets.cpp" />
     <ClCompile Include="cpu.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

@@ -2,6 +2,10 @@
 #include <fstream>
 #include <iomanip>
 #include <vector>
+#include <sstream>
+
+#include <imgui.h>
+#include <imgui-SFML.h>
 
 #include "cpu.h"
 
@@ -28,14 +32,20 @@ Cpu::Cpu() {
 	RegisterBank.PC = 0x200;
 	RegisterBank.SP = 0x00;
 
+	ImguiGUI = false;
+	Paused = false;
+	Step = false;
+
 	window = new sf::RenderWindow(sf::VideoMode(800, 600), "Chip-8");
 	sf::View view = window->getView();
 	view.setCenter(width / 2, height / 2);
 
+	ImGui::SFML::Init(*window);
+
 	view.setSize(sf::Vector2f(width, height));
 	window->setView(view);
-
 	window->setFramerateLimit(250);
+
 
 	frameTexture.create(width, height);
 	frame.setTexture(frameTexture);
@@ -81,6 +91,7 @@ Cpu::Cpu(const std::string& RomfilePath) : Cpu() {
 }
 
 Cpu::~Cpu() {
+	ImGui::SFML::Shutdown();
 	delete window;
 }
 
@@ -145,6 +156,8 @@ bool Cpu::LoadRom(const std::string& RomfilePath) {
 void Cpu::Start() {
 
 	int counter = 0;
+
+	sf::Clock deltaClock;
 	while (RegisterBank.PC < Memory.size() && window->isOpen()) {
 		sf::Uint8 FrameBufferSFML[(32 * 64) * 4];
 		
@@ -168,6 +181,8 @@ void Cpu::Start() {
 		
 		sf::Event evt;
 		while (window->pollEvent(evt)) {
+			ImGui::SFML::ProcessEvent(evt);
+
 			switch (evt.type) {
 			case sf::Event::Closed:
 				window->close();
@@ -225,6 +240,9 @@ void Cpu::Start() {
 					break;
 				case sf::Keyboard::P:
 					Reset();
+					break;
+				case sf::Keyboard::G:
+					ImguiGUI = !ImguiGUI;
 					break;
 				}
 				break;
@@ -289,7 +307,13 @@ void Cpu::Start() {
 			}
 			
 		}
-		Exec();
+		if (!Paused) {
+			Exec();
+		}
+		if (Step) {
+			Paused = true;
+			Step = false;
+		}
 
 		if (RegisterBank.DelayTimer > 0) {
 			RegisterBank.DelayTimer--;
@@ -301,9 +325,50 @@ void Cpu::Start() {
 		else {
 			Tone.stop();
 		}
+	
+		if (ImguiGUI) {
+			std::string PauseButtonStr;
+			if (Paused) {
+				PauseButtonStr = "Unpause";
+			}
+			else {
+				PauseButtonStr = "Pause";
+			}
+			
+			ImGui::SFML::Update(*window, deltaClock.restart());
+			ImGui::Begin("Registers");
+			for (int i = 0; i < 16; i += 4) {
+				std::ostringstream TmpStream;
+				TmpStream << std::showbase << std::internal << std::setfill('0') << std::hex << "V[" << i << "] = " << std::setw(4) << (short)RegisterBank.V[i] << " ";
+				TmpStream << "V[" << i + 1 << "] = " << (short)RegisterBank.V[i + 1] << " ";
+				TmpStream << "V[" << i + 2 << "] = " << (short)RegisterBank.V[i + 2] << " ";
+				TmpStream << "V[" << i + 3 << "] = "  << (short)RegisterBank.V[i + 3] << std::endl;
+				ImGui::Text(TmpStream.str().c_str());
+			}
+			std::ostringstream TmpStream;
+			TmpStream << "SP = " << std::showbase << std::internal << std::setfill('0') << std::hex << std::setw(6) << (short)RegisterBank.SP << std::endl;
+			TmpStream << "PC = " << std::showbase << std::internal << std::setfill('0') << std::hex << std::setw(6) << (short)RegisterBank.PC;
+			ImGui::Text(TmpStream.str().c_str());
+			TmpStream.clear();
+
+			if (ImGui::Button(PauseButtonStr.c_str())) {
+				Paused = !Paused;
+			}
+			if (Paused) {
+				if (ImGui::Button("Step")) {
+					Step = true;
+					Paused = false;
+				}
+			}
+
+			ImGui::End();
+		}
 
 		window->clear();
 		window->draw(frame);
+		if (ImguiGUI) {
+			ImGui::SFML::Render(*window);
+		}
 		window->display();
 	}
 }
