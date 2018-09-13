@@ -28,6 +28,8 @@ public:
 	void Start();
 	bool LoadRom(const std::string& RomfilePath);
 private:
+	typedef void (Cpu::*OpcodeTable)();
+
 	std::array<uint8_t, 0x1000> Memory;
 	std::array<uint8_t, 16> Keyboard;
 	std::array<uint8_t, 32 * 64> Framebuffer;
@@ -64,6 +66,8 @@ private:
 
 	const int height = 32;
 	const int width = 64;
+
+	OpcodeTable OpTable[0x10];
 
 	void Exec();
 	void Reset();

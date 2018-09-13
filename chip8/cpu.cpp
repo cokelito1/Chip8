@@ -52,6 +52,23 @@ Cpu::Cpu() {
 	std::cout << "View " << view.getSize().x << " " << view.getSize().y << std::endl;
 	std::cout << "Window View " << window->getView().getSize().x << " " << window->getView().getSize().y << std::endl;
 
+	OpTable[0x00] = &Cpu::Op0xxx;
+	OpTable[0x01] = &Cpu::Op1xxx;
+	OpTable[0x02] = &Cpu::Op2xxx;
+	OpTable[0x03] = &Cpu::Op3xxx;
+	OpTable[0x04] = &Cpu::Op4xxx;
+	OpTable[0x05] = &Cpu::Op5xxx;
+	OpTable[0x06] = &Cpu::Op6xxx;
+	OpTable[0x07] = &Cpu::Op7xxx;
+	OpTable[0x08] = &Cpu::Op8xxx;
+	OpTable[0x09] = &Cpu::Op9xxx;
+	OpTable[0x0A] = &Cpu::OpAxxx;
+	OpTable[0x0B] = &Cpu::OpBxxx;
+	OpTable[0x0C] = &Cpu::OpCxxx;
+	OpTable[0x0D] = &Cpu::OpDxxx;
+	OpTable[0x0E] = &Cpu::OpExxx;
+	OpTable[0x0F] = &Cpu::OpFxxx;
+
 	RegisterBank.SoundTimer = 0;
 	RegisterBank.DelayTimer = 0;
 }
@@ -97,8 +114,6 @@ void Cpu::Reset() {
 
 	RegisterBank.SoundTimer = 0;
 	RegisterBank.DelayTimer = 0;
-
-	Start();
 }
 
 bool Cpu::LoadRom(const std::string& RomfilePath) {
@@ -302,60 +317,7 @@ void Cpu::Exec() {
 	Opcode = (Memory[RegisterBank.PC] << 8);
 	Opcode |= Memory[RegisterBank.PC + 1];
 
-	switch (Opcode & 0xF000) {
-	case 0x0000:
-		Op0xxx();
-		break;
-	case 0x1000:
-		Op1xxx();
-		break;
-	case 0x2000:
-		Op2xxx();
-		break;
-	case 0x3000:
-		Op3xxx();
-		break;
-	case 0x4000:
-		Op4xxx();
-		break;
-	case 0x5000:
-		Op5xxx();
-		break;
-	case 0x6000:
-		Op6xxx();
-		break;
-	case 0x7000:
-		Op7xxx();
-		break;
-	case 0x8000:
-		Op8xxx();
-		break;
-	case 0x9000:
-		Op9xxx();
-		break;
-	case 0xA000:
-		OpAxxx();
-		break;
-	case 0xB000:
-		OpBxxx();
-		break;
-	case 0xC000:
-		OpCxxx();
-		break;
-	case 0xD000: {
-		OpDxxx();
-		break;
-	}
-	case 0xE000:
-		OpExxx();
-		break;
-	case 0xF000:
-		OpFxxx();
-		break;
-	default:
-		std::cout << "Opcode Unrecognized " << std::hex << Opcode << std::endl;
-		break;
-	}
+	(this->*OpTable[((Opcode & 0xF000) >> 12)])();
 
 	if (RegisterBank.SoundTimer > 0) {
 		RegisterBank.SoundTimer--;
@@ -598,7 +560,7 @@ void Cpu::OpDxxx() {
 	for (int y = 0; (y < (Opcode & 0x000F)); y++) {
 		uint8_t pixel = Memory[RegisterBank.I + y];
 		for (int x = 0; x < 8; x++) {
-			if ((pixel & (0x80 >> x)) != 0) {
+			if ((pixel & (0x80 >> x)) != 0 && (x + Vx + ((y + Vy) * 64)) < (32 * 64)) {
 				if (Framebuffer[(x + Vx + ((y + Vy) * 64))] == 1) {
 					RegisterBank.V[0x0F] = 1;
 				}
