@@ -49,11 +49,11 @@ Cpu::Cpu() {
 
 	window = new sf::RenderWindow(sf::VideoMode(800, 600), "Chip-8");
 	sf::View view = window->getView();
-	view.setCenter(width / 2, height / 2);
+	view.setCenter((float) width / 2, (float) height / 2);
 
 	ImGui::SFML::Init(*window);
 
-	view.setSize(sf::Vector2f(width, height));
+	view.setSize(sf::Vector2f((float)width, (float)height));
 	window->setView(view);
 	window->setFramerateLimit(250);
 
@@ -145,14 +145,14 @@ bool Cpu::LoadRom(const std::string& RomfilePath) {
 		return false;
 	}
 
-	size_t FileSize = Rom.tellg();
+	std::streampos FileSize = Rom.tellg();
 	if (FileSize > (0x1000 - 0x200)) {
 		std::cerr << "Rom muy grande" << std::endl;
 		return false;
 	}
 	Rom.seekg(0);
 
-	uint8_t *RomBuffer = new uint8_t[FileSize];
+	uint8_t *RomBuffer = new uint8_t[(unsigned int)FileSize];
 	Rom.read((char *) RomBuffer, FileSize);
 	Rom.close();
 
@@ -483,23 +483,17 @@ void Cpu::Op8xxx() {
 		RegisterBank.PC += 2;
 		break;
 	case 0x0002:
-#ifdef DEBUG
-		std::cout << "AND V[" << std::setw(4) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "], V[" << ((Opcode & 0x00F0) >> 4) << "]" << std::endl;
-#endif
+		dbg_printf("AND V[0x%02X], V[0x%02X]\n", ((Opcode & 0x0F00) >> 8), ((Opcode & 0x00F0) >> 4));
 		RegisterBank.V[((Opcode & 0x0F00) >> 8)] &= RegisterBank.V[((Opcode & 0x00F0) >> 4)];
 		RegisterBank.PC += 2;
 		break;
 	case 0x0003:
-#ifdef DEBUG
-		std::cout << "XOR V[" << std::setw(4) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "], V[" << ((Opcode & 0x00F0) >> 4) << "]" << std::endl;
-#endif
+		dbg_printf("XOR V[0x%02X], V[0x%02X]\n", ((Opcode & 0x0F00) >> 8), ((Opcode & 0x00F0) >> 4));
 		RegisterBank.V[((Opcode & 0x0F00) >> 8)] ^= RegisterBank.V[((Opcode & 0x00F0) >> 4)];
 		RegisterBank.PC += 2;
 		break;
 	case 0x0004: {
-#ifdef DEBUG
-		std::cout << "ADD V[" << std::setw(4) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "], V[" << ((Opcode & 0x00F0) >> 4) << "]" << std::endl;
-#endif
+		dbg_printf("ADD V[0x%02X], V[0x%02X]\n", ((Opcode & 0x0F00) >> 8), ((Opcode & 0x00F0) >> 4));
 		RegisterBank.V[((Opcode & 0x0F00) >> 8)] += RegisterBank.V[((Opcode & 0x00F0) >> 4)];
 		if (RegisterBank.V[((Opcode & 0x00F0) >> 4)] > (0xFF - RegisterBank.V[((Opcode & 0x0F00) >> 8)])) {
 			RegisterBank.V[0x0F] = 1;
@@ -512,9 +506,7 @@ void Cpu::Op8xxx() {
 	}
 				 break;
 	case 0x0005:
-#ifdef DEBUG
-		std::cout << "SUB V[" << std::setw(4) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "], V[" << ((Opcode & 0x00F0) >> 4) << "]" << std::endl;
-#endif
+		dbg_printf("SUB V[0x%02X], V[0x%02X]\n", ((Opcode & 0x0F00) >> 8), ((Opcode & 0x00F0) >> 4));
 		if (RegisterBank.V[((Opcode & 0x0F00) >> 8)] > RegisterBank.V[((Opcode & 0x00F0) >> 4)]) {
 			RegisterBank.V[0xF] = 1;
 		}
@@ -525,10 +517,8 @@ void Cpu::Op8xxx() {
 		RegisterBank.PC += 2;
 		break;
 	case 0x0006:
-#ifdef DEBUG
-		std::cout << "SHR V[" << std::setw(4) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "]" << std::endl;
-#endif
-		if (RegisterBank.V[((Opcode & 0x0F00) >> 8)] & 0x01 == 1) {
+		dbg_printf("SHR V[0x%02X]\n", ((Opcode & 0x0F00) > 8));
+		if ((RegisterBank.V[((Opcode & 0x0F00) >> 8)] & 0x01) == 1) {
 			RegisterBank.V[0xF] = 1;
 		}
 		else {
@@ -538,9 +528,7 @@ void Cpu::Op8xxx() {
 		RegisterBank.PC += 2;
 		break;
 	case 0x0007:
-#ifdef DEBUG
-		std::cout << "SUBN V[" << std::setw(4) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "], V[" << ((Opcode & 0x00F0) >> 4) << "]" << std::endl;
-#endif
+		dbg_printf("SUBN V[0x%02X], V[0x%02X]", ((Opcode & 0x0F00) >> 8), ((Opcode & 0x00F0) >> 4));
 		if (RegisterBank.V[((Opcode & 0x0F00) >> 8)] < RegisterBank.V[((Opcode & 0x00F0) >> 4)]) {
 			RegisterBank.V[0xF] = 1;
 		}
@@ -551,10 +539,8 @@ void Cpu::Op8xxx() {
 		RegisterBank.PC += 2;
 		break;
 	case 0x000E:
-#ifdef DEBUG
-		std::cout << "SHL V[" << std::setw(4) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "]" << std::endl;
-#endif
-		if (RegisterBank.V[((Opcode & 0x0F00) >> 8)] & 0x80 == 1) {
+		dbg_printf("SHL V[0x%02X]\n", ((Opcode & 0x0F00) > 8));
+		if ((RegisterBank.V[((Opcode & 0x0F00) >> 8)] & 0x80) == 1) {
 			RegisterBank.V[0xF] = 1;
 		}
 		else {
@@ -570,9 +556,7 @@ void Cpu::Op8xxx() {
 }
 
 void Cpu::Op9xxx() {
-#ifdef DEBUG
-	std::cout << "SNE VX VY" << std::endl;
-#endif
+	dbg_printf("SNE V[0x%02X], V[0x%02X]\n", ((Opcode & 0x0F00) >> 8), ((Opcode & 0x00F0) >> 4));
 	if (RegisterBank.V[((Opcode & 0x0F00) >> 8)] != RegisterBank.V[((Opcode & 0x00F0) >> 4)]) {
 		RegisterBank.PC += 2;
 	}
@@ -580,24 +564,18 @@ void Cpu::Op9xxx() {
 }
 
 void Cpu::OpAxxx() {
-#ifdef DEBUG
-	std::cout << "LD I, " << std::setw(2) << std::setfill('0') << std::hex << (Opcode & 0x0FFF) << std::endl;
-#endif
+	dbg_printf("LD I, 0x%04X\n", (Opcode & 0x0FFF));
 	RegisterBank.I = (Opcode & 0x0FFF);
 	RegisterBank.PC += 2;
 }
 
 void Cpu::OpBxxx() {
-#ifdef DEBUG
-	std::cout << "JMP V[0], " << std::setw(4) << std::setfill('0') << std::hex << ((Opcode & 0x0FFF)) << std::endl;
-#endif
+	dbg_printf("JMP V[0x00], 0x%04X\n", (Opcode & 0x0FFF));
 	RegisterBank.PC = (RegisterBank.V[0] + (Opcode & 0x0FFF));
 }
 
 void Cpu::OpCxxx() {
-#ifdef DEBUG
-	std::cout << "RND V[" << std::setw(2) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "], " << (Opcode & 0x00FF) << std::endl;
-#endif
+	dbg_printf("RND V[0x%02X]\n", ((Opcode & 0x0F00) >> 8));
 	RegisterBank.V[((Opcode & 0x0F00) >> 8)] = distribution(rd);
 	RegisterBank.V[((Opcode & 0x0F00) >> 8)] &= (Opcode & 0x00FF);
 	RegisterBank.PC += 2;
@@ -607,9 +585,7 @@ void Cpu::OpDxxx() {
 	int Vx = RegisterBank.V[((Opcode & 0x0F00) >> 8)];
 	int Vy = RegisterBank.V[((Opcode & 0x00F0) >> 4)];
 
-#ifdef DEBUG
-	std::cout << "DWR " << std::setw(4) << std::setfill('0') << std::hex << RegisterBank.I << ", " << Vx << ", " << Vy << ", " << (Opcode & 0x000F) << std::endl;
-#endif
+	dbg_printf("DWR 0x%04X, 0x%02X, 0x%02X, 0x%02X\n", RegisterBank.I, Vx, Vy, (Opcode & 0x000F));
 
 	RegisterBank.V[0xF] = 0;
 	for (int y = 0; (y < (Opcode & 0x000F)); y++) {
@@ -630,18 +606,14 @@ void Cpu::OpDxxx() {
 void Cpu::OpExxx() {
 	switch ((Opcode & 0x000F)) {
 	case 0x0001:
-#ifdef DEBUG
-		std::cout << "SKNP V[" << std::setw(4) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "]" << std::endl;
-#endif
+		dbg_printf("SKNP V[0x%02X]\n", ((Opcode & 0x0F00) >> 8));
 		if (Keyboard[RegisterBank.V[((Opcode & 0x0F00) >> 8)]] == 0) {
 			RegisterBank.PC += 2;
 		}
 		RegisterBank.PC += 2;
 		break;
 	case 0x000E:
-#ifdef DEBUG
-		std::cout << "SKP V[" << std::setw(4) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "]" << std::endl;
-#endif
+		dbg_printf("SKP V[0x%02X]\n", ((Opcode & 0x0F00) >> 8));
 		if (Keyboard[RegisterBank.V[((Opcode & 0x0F00) >> 8)]] == 1) {
 			RegisterBank.PC += 2;
 		}
@@ -653,16 +625,12 @@ void Cpu::OpExxx() {
 void Cpu::OpFxxx() {
 	switch (Opcode & 0x00FF) {
 	case 0x0007:
-#ifdef DEBUG
-		std::cout << "LD V[" << std::setw(2) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "], DT" << std::endl;
-#endif
+		dbg_printf("LD V[0x%02X], DT\n", ((Opcode & 0x0F00) >> 8));
 		RegisterBank.V[((Opcode & 0x0F00) >> 8)] = RegisterBank.DelayTimer;
 		RegisterBank.PC += 2;
 		break;
 	case 0x000A:
-#ifdef DEBUG
-		std::cout << "LD V[" << std::setw(2) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "], K" << std::endl;
-#endif
+		dbg_printf("LD V[0x%02X], K", ((Opcode & 0x0F00) >> 8));
 		for (int i = 0; i < 16; i++) {
 			if (Keyboard[i] == 1) {
 				RegisterBank.V[((Opcode & 0x0F00) >> 8)] = i;
@@ -672,37 +640,27 @@ void Cpu::OpFxxx() {
 		}
 		break;
 	case 0x001E:
-#ifdef DEBUG
-		std::cout << "ADD I, V[" << std::setw(2) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "], " << (Opcode & 0x00FF) << std::endl;
-#endif
+		dbg_printf("ADD I, V[0x%02X]\n", ((Opcode & 0x0F00) >> 8));
 		RegisterBank.I += RegisterBank.V[((Opcode & 0x0F00) >> 8)];
 		RegisterBank.PC += 2;
 		break;
 	case 0x0015:
-#ifdef DEBUG
-		std::cout << "LD DT, V[" << std::setw(2) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "]" << std::endl;
-#endif
+		dbg_printf("LD DT, V[0x%02X]\n", ((Opcode & 0x0F00) >> 8));
 		RegisterBank.DelayTimer = RegisterBank.V[((Opcode & 0x0F00) >> 8)];
 		RegisterBank.PC += 2;
 		break;
 	case 0x0018:
-#ifdef DEBUG
-		std::cout << "LD ST, V[" << std::setw(2) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "]" << std::endl;
-#endif
+		dbg_printf("LD ST, V[0x%02X]\n", ((Opcode & 0x0F00) >> 8));
 		RegisterBank.SoundTimer = RegisterBank.V[((Opcode & 0x0F00) >> 8)];
 		RegisterBank.PC += 2;
 		break;
 	case 0x0029:
-#ifdef DEBUG
-		std::cout << "LD F, V[" << std::setw(2) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "]" << std::endl;
-#endif
+		dbg_printf("LD F, V[0x%02X]\n", ((Opcode & 0x0F00) >> 8));
 		RegisterBank.I = RegisterBank.V[((Opcode & 0x0F00) >> 8)] * 5;
 		RegisterBank.PC += 2;
 		break;
 	case 0x0033: {
-#ifdef DEBUG
-		std::cout << "LD B, V[" << std::setw(2) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "]" << std::endl;
-#endif
+		dbg_printf("LD B, V[0x%02X]\n", ((Opcode & 0x0F00) >> 8));
 		int tmp = RegisterBank.V[((Opcode & 0x0F00) >> 8)];
 		Memory[RegisterBank.I] = tmp / 100;
 		Memory[RegisterBank.I + 1] = ((tmp / 10) % 10);
@@ -710,26 +668,22 @@ void Cpu::OpFxxx() {
 
 		RegisterBank.PC += 2;
 	}
-				 break;
+	break;
 
 	case 0x0055:
-#ifdef DEBUG
-		std::cout << "LD [I], V[" << std::setw(2) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "]" << std::endl;
-#endif
+		dbg_printf("LD [I], V[0x%02X]\n", ((Opcode & 0x0F00) >> 8));
 		for (int i = 0; i < ((Opcode & 0x0F00) >> 8); i++) {
 			Memory[RegisterBank.I + i] = RegisterBank.V[i];
 		}
 		RegisterBank.PC += 2;
 		break;
 	case 0x0065:
-#ifdef DEBUG
-		std::cout << "LD V[" << std::setw(2) << std::setfill('0') << std::hex << ((Opcode & 0x0F00) >> 8) << "], [I]" << std::endl;
-#endif
+		dbg_printf("LD V[0x%02X], [I]\n", ((Opcode & 0x0F00) >> 8));
 		for (int i = 0; i < ((Opcode & 0x0F00) >> 8); i++) {
 			RegisterBank.V[i] = Memory[RegisterBank.I + i];
 		}
 
-		//RegisterBank.I += (((Opcode & 0x0F00) >> 8) + 1);
+		RegisterBank.I += (((Opcode & 0x0F00) >> 8) + 1);
 		RegisterBank.PC += 2;
 		break;
 	default:
