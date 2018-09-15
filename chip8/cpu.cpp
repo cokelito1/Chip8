@@ -165,9 +165,6 @@ bool Cpu::LoadRom(const std::string& RomfilePath) {
 }
 
 void Cpu::Start() {
-
-	int counter = 0;
-
 	sf::Clock deltaClock;
 	while (RegisterBank.PC < Memory.size() && window->isOpen()) {
 		sf::Uint8 FrameBufferSFML[(32 * 64) * 4];
@@ -339,6 +336,7 @@ void Cpu::Start() {
 	
 		if (ImguiGUI) {
 			std::string PauseButtonStr;
+
 			if (Paused) {
 				PauseButtonStr = "Unpause";
 			}
@@ -371,7 +369,7 @@ void Cpu::Start() {
 					Paused = false;
 				}
 			}
-
+			
 			ImGui::End();
 		}
 
@@ -489,7 +487,7 @@ void Cpu::Op8xxx() {
 		break;
 	case 0x0003:
 		dbg_printf("XOR V[0x%02X], V[0x%02X]\n", ((Opcode & 0x0F00) >> 8), ((Opcode & 0x00F0) >> 4));
-		RegisterBank.V[((Opcode & 0x0F00) >> 8)] ^= RegisterBank.V[((Opcode & 0x00F0) >> 4)];
+		RegisterBank.V[((Opcode & 0x0F00) >> 8)] = RegisterBank.V[((Opcode & 0x0F00) >> 8)] ^ RegisterBank.V[((Opcode & 0x00F0) >> 4)];
 		RegisterBank.PC += 2;
 		break;
 	case 0x0004: {
@@ -540,13 +538,8 @@ void Cpu::Op8xxx() {
 		break;
 	case 0x000E:
 		dbg_printf("SHL V[0x%02X]\n", ((Opcode & 0x0F00) > 8));
-		if ((RegisterBank.V[((Opcode & 0x0F00) >> 8)] & 0x80) == 1) {
-			RegisterBank.V[0xF] = 1;
-		}
-		else {
-			RegisterBank.V[0xF] = 0;
-		}
-		RegisterBank.V[((Opcode & 0x0F00) >> 8)] *= 2;
+		RegisterBank.V[0x0F] = RegisterBank.V[((Opcode & 0x0F00) >> 8)] >> 7;
+		RegisterBank.V[((Opcode & 0x0F00) >> 8)] = RegisterBank.V[((Opcode & 0x0F00) >> 8)] << 1;
 		RegisterBank.PC += 2;
 		break;
 	default:
@@ -630,7 +623,7 @@ void Cpu::OpFxxx() {
 		RegisterBank.PC += 2;
 		break;
 	case 0x000A:
-		dbg_printf("LD V[0x%02X], K", ((Opcode & 0x0F00) >> 8));
+		dbg_printf("LD V[0x%02X], K\n", ((Opcode & 0x0F00) >> 8));
 		for (int i = 0; i < 16; i++) {
 			if (Keyboard[i] == 1) {
 				RegisterBank.V[((Opcode & 0x0F00) >> 8)] = i;
@@ -664,7 +657,7 @@ void Cpu::OpFxxx() {
 		int tmp = RegisterBank.V[((Opcode & 0x0F00) >> 8)];
 		Memory[RegisterBank.I] = tmp / 100;
 		Memory[RegisterBank.I + 1] = ((tmp / 10) % 10);
-		Memory[RegisterBank.I + 2] = ((tmp % 100) % 10);
+		Memory[RegisterBank.I + 2] = (tmp % 10);
 
 		RegisterBank.PC += 2;
 	}
@@ -672,18 +665,18 @@ void Cpu::OpFxxx() {
 
 	case 0x0055:
 		dbg_printf("LD [I], V[0x%02X]\n", ((Opcode & 0x0F00) >> 8));
-		for (int i = 0; i < ((Opcode & 0x0F00) >> 8); i++) {
+		for (int i = 0; i <= ((Opcode & 0x0F00) >> 8); i++) {
 			Memory[RegisterBank.I + i] = RegisterBank.V[i];
 		}
 		RegisterBank.PC += 2;
 		break;
 	case 0x0065:
 		dbg_printf("LD V[0x%02X], [I]\n", ((Opcode & 0x0F00) >> 8));
-		for (int i = 0; i < ((Opcode & 0x0F00) >> 8); i++) {
+		for (int i = 0; i <= ((Opcode & 0x0F00) >> 8); i++) {
 			RegisterBank.V[i] = Memory[RegisterBank.I + i];
 		}
 
-		RegisterBank.I += (((Opcode & 0x0F00) >> 8) + 1);
+		//RegisterBank.I += (((Opcode & 0x0F00) >> 8) + 1);
 		RegisterBank.PC += 2;
 		break;
 	default:
