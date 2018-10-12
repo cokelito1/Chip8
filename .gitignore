@@ -1,0 +1,8 @@
+# Cpp things
+*.o
+*.pch
+
+#VS thimgs
+.sln
+
+build/
