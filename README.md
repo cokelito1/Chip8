@@ -20,3 +20,4 @@
 | V     | Keyboard[15]       |
 | P     | Resetear emulacion |
 | G     | Toggle GUI         |
+| M     | Cargar nueva rom   |
