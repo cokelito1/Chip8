@@ -24,7 +24,7 @@
 
 ## Como Usarlo
 Por defecto el emulador intentara abrir el archivo
-*test.ch8* en caso de no especificar una rom para
+**test.ch8** en caso de no especificar una rom para
 cargar, para especificar una rom se tiene que ejecutar
 el emulador desde una terminal y especificar la ruta
 hacia la rom, probablemente en windows se pueda simplemente
