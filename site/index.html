@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="None">
+        
+        
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>Chip8</title>
+        <link href="css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="css/font-awesome.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <script src="js/jquery-1.10.2.min.js" defer></script>
+        <script src="js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body class="homepage">
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <a class="navbar-brand" href=".">Chip8</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#chip8">Chip8</a></li>
+            <li><a href="#como-usarlo">Como usarlo</a></li>
+            <li><a href="#especificaciones-chip-8">Especificaciones Chip 8</a></li>
+            <li><a href="#opcodes-en-chip8">Opcodes en chip8</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="chip8">Chip8</h1>
+<h2 id="como-usarlo">Como usarlo</h2>
+<ul>
+<li><code>./chip_emu</code> - Ejecutar emulador con test.ch8 </li>
+<li><code>./chip_emu -r &lt;rom_name&gt;</code> - Ejecutar emulador con rom_name </li>
+</ul>
+<h2 id="especificaciones-chip-8">Especificaciones Chip 8</h2>
+<p>El chip 8 tiene los siguientes registros</p>
+<ul>
+<li><code>uint8_t V[0x10]</code>: Registros de proposito general, son 16</li>
+<li><code>uint8_t SoundTimer</code>: Registro que se actualiza a una frecuencia de 60Hz, en caso de llegar a cero suen un pitido</li>
+<li><code>uint8_t DelayTimer</code>: Registro que se actualiza a una frecuencia de 60Hz</li>
+<li><code>uint16_t I</code>: Registro que se ocupa para guardar direcciones de memoria, normalmente se utilizan los 12 bits bajos.</li>
+<li><code>uint16_t PC</code>: Program Counter, se ocupara para almacenar la direccion desde donde se conseguira la siguiente instruccion</li>
+<li><code>uint16_t SP</code>: Stack Pointer, Indice del ultimo elemento puesto en la stack.</li>
+</ul>
+<h3 id="memoria-e-io">Memoria e I/O</h3>
+<p>El chip 8 tiene un <code>Framebuffer</code> de 32*64 pixeles, ocupa 16 teclas como input, Su memoria es de 0x1000 bytes
+y su stack de 0x10 uint16_t</p>
+<h2 id="opcodes-en-chip8">Opcodes en chip8</h2>
+<p>Los opcodes son las <em>funciones</em> que emula
+el emulador</p>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Mnemonico</th>
+<th>Funcion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x00E0</td>
+<td>CLS</td>
+<td>Limpiar Framebuffer</td>
+</tr>
+<tr>
+<td>0x00EE</td>
+<td>RET</td>
+<td>PC = Stack[SP]; SP--</td>
+</tr>
+<tr>
+<td>0x1nnn</td>
+<td>JP nnn</td>
+<td>PC = nnn</td>
+</tr>
+<tr>
+<td>0x2nnn</td>
+<td>CALL nnn</td>
+<td>SP++; Stack[SP] = PC; PC = nnn</td>
+</tr>
+<tr>
+<td>0x3xkk</td>
+<td>SE Vx, kk</td>
+<td>if Vx == kk then PC += 2</td>
+</tr>
+<tr>
+<td>0x4xkk</td>
+<td>SNE Vx, kk</td>
+<td>if Vx != kk then PC += 2</td>
+</tr>
+<tr>
+<td>0x5xkk</td>
+<td>SE Vx, Vy</td>
+<td>if Vx == Vy then PC += 2</td>
+</tr>
+<tr>
+<td>0x6xkk</td>
+<td>LD Vx, kk</td>
+<td>Vx = kk</td>
+</tr>
+<tr>
+<td>0x7xkk</td>
+<td>ADD Vx, kk</td>
+<td>Vx += kk</td>
+</tr>
+<tr>
+<td>0x8xy1</td>
+<td>OR Vx, Vy</td>
+<td>Vx or Vy</td>
+</tr>
+<tr>
+<td>0x8xy2</td>
+<td>AND Vx, Vy</td>
+<td>Vx &amp;= Vy</td>
+</tr>
+<tr>
+<td>0x8xy3</td>
+<td>XOR Vx, Vy</td>
+<td>Vx ^= Vy</td>
+</tr>
+<tr>
+<td>0x8xy4</td>
+<td>ADD Vx, Vy</td>
+<td>Vx += Vy</td>
+</tr>
+<tr>
+<td>0x8xy5</td>
+<td>SUB Vx, Vy</td>
+<td>Vx -= Vy</td>
+</tr>
+<tr>
+<td>0x8xy6</td>
+<td>SHR Vx, (Vy &gt;&gt; 1)</td>
+<td>Vx = Vy &gt;&gt; 1</td>
+</tr>
+<tr>
+<td>0x8xy7</td>
+<td>SUBN Vx, Vy</td>
+<td>Vx = Vy - Vx</td>
+</tr>
+<tr>
+<td>0x8xyE</td>
+<td>SHL Vx, (Vy &lt;&lt; 1)</td>
+<td>Vx = Vy &lt;&lt; 1</td>
+</tr>
+<tr>
+<td>0x9xy0</td>
+<td>SNE Vx, Vy</td>
+<td>if Vx != Vy then PC += 2</td>
+</tr>
+<tr>
+<td>0xAnnn</td>
+<td>LD I, nnn</td>
+<td>I = nnn</td>
+</tr>
+<tr>
+<td>0xBnnn</td>
+<td>JP V0, nnn</td>
+<td>PC = V0 += nnn</td>
+</tr>
+<tr>
+<td>0xCxkk</td>
+<td>RND Vx, kk</td>
+<td>Vx = rand() % kk</td>
+</tr>
+<tr>
+<td>0xDxyn</td>
+<td>DRW Vx, Vy, n</td>
+<td>XOR al sprite desde la posicon I</td>
+</tr>
+<tr>
+<td>0xEx9E</td>
+<td>SKP Vx</td>
+<td>if Keybord[Vx] == 1 then PC += 2</td>
+</tr>
+<tr>
+<td>0xExA1</td>
+<td>SKNP Vx</td>
+<td>if Keyboard[Vx] == 0 then PC += 2</td>
+</tr>
+<tr>
+<td>0xFx07</td>
+<td>LD Vx, DT</td>
+<td>Vx = DT</td>
+</tr>
+<tr>
+<td>0xFx0A</td>
+<td>LD Vx, K</td>
+<td>Esperar una tecla y guardar el indice en Vx</td>
+</tr>
+<tr>
+<td>0xFx18</td>
+<td>LD Vx, ST</td>
+<td>Vx = ST</td>
+</tr>
+<tr>
+<td>0xFx1E</td>
+<td>ADD I, Vx</td>
+<td>I += Vx</td>
+</tr>
+<tr>
+<td>0xFx29</td>
+<td>LD F, Vx</td>
+<td>I = Vx * 5</td>
+</tr>
+<tr>
+<td>0xFx33</td>
+<td>LD B, Vx</td>
+<td>Guardar el valor de Vx en formato decimal a I, I + 1, i + 2</td>
+</tr>
+<tr>
+<td>0xFx55</td>
+<td>LD [I], Vx</td>
+<td>Guardar los registros V0 hasta Vx en I</td>
+</tr>
+<tr>
+<td>0xFx65</td>
+<td>LD Vx, [I]</td>
+<td>Leer los registros V0 hasta Vx desde I</td>
+</tr>
+</tbody>
+</table></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js" defer></script>
+        <script src="search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 1.0.4
+Build Date UTC : 2018-10-14 20:19:03
+-->
